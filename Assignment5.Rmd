@@ -1,0 +1,62 @@
+---
+title: "Assignment 5"
+author: "Ørjan Mikal Antonsen"
+date: "16 oktober 2018"
+output: html_document
+---
+Library chunk
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+library(mosaic)
+```
+
+Reading file
+```{r, include=FALSE}
+colnames <- c("birth_month","gender", "birth_weight")
+births <- read_fwf("Nat2017US.txt",
+                   fwf_positions(start = c(13,475,504),
+                                 end = c(14,475,507),
+                                 col_names = colnames))
+head(births)
+str(births)
+
+births$birth_month <- as.numeric(births$birth_month)
+births$gender <- as.factor(births$gender)
+births$birth_weight <- as.numeric(births$birth_weight)
+```
+
+Removing columns with missing weights
+```{r}
+births <- births %>% filter(birth_weight < 9999)
+```
+
+Saving the new file and making it smaller so I can remove the bigger file since I have low storage space
+```{r}
+save("births", file="births")
+load("births")
+```
+
+
+Checking proportion of boys to girls and making a density plot
+```{r}
+tally(~gender, data = births, format = "percent")
+
+ggplot (data = births, aes(x = birth_weight, fill = gender, colour=gender)) +    geom_density(alpha=0.8, adjust=3) + 
+   xlab("Weight in gram") + ylab("Density") + 
+     labs(title = "Density Plot")
+       
+```
+
+Average birth varied by month
+```{r}
+birthaverage = births%>%
+  group_by(birth_month) %>%
+  summarise(average = mean(birth_weight))
+
+ggplot(birthaverage, aes(x=birth_month, y= average, colour="average")) +
+  geom_line()
+
+```
+
